@@ -20,3 +20,12 @@ fn main() {
         }
     }
 }
+
+fn get_request_slack_api(method: &str, token: &str) -> std::result::Result<reqwest::blocking::Response, reqwest::Error> {
+    let url = format!("https://slack.com/api/{}", method);
+
+    let client = reqwest::blocking::Client::new();
+    return client.get(&url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send();
+}
