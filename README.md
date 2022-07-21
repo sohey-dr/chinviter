@@ -1,9 +1,9 @@
 # Slack Channel Inviter
 
-## how to install
+## How to install
 
 ```bash
 
 ```
 
-## how to use
+## How to use
