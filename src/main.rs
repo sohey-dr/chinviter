@@ -27,13 +27,26 @@ struct Channel {
     is_archived: bool,
 }
 
+const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
+
 fn main() {
     let args = Cli::parse();
 
     let json_str = get_request_slack_api("conversations.list", &args.token);
 
     let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
-    println!("{:?}", res.channels[0].name);
+    let mut records: Vec<Vec<String>> = Vec::new();
+
+    for channel in res.channels {
+        let mut record: Vec<String> = Vec::new();
+        record.push(channel.id);
+        record.push(channel.name);
+        record.push(channel.is_private.to_string());
+
+        records.push(record);
+    }
+
+    write_csv(CONVERSATIONS_CSV_PATH, records)
 }
 
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
@@ -48,7 +61,7 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
 }
 
 
-fn write_csv(path: &str, records: Vec<Vec<&str>>) {
+fn write_csv(path: &str, records: Vec<Vec<String>>) {
     let mut writer = Writer::from_path(path).unwrap();
     for record in records {
         writer.write_record(&record).unwrap();
