@@ -1,6 +1,8 @@
 use reqwest;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
+use csv::Writer;
+
 
 #[derive(Parser)]
 struct Cli {
@@ -43,4 +45,12 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
         .send();
 
     return resp.unwrap();
+}
+
+
+fn write_csv(path: &str, records: Vec<Vec<&str>>) {
+    let mut writer = Writer::from_path(path).unwrap();
+    for record in records {
+        writer.write_record(&record).unwrap();
+    }
 }
