@@ -1,5 +1,6 @@
 use reqwest;
 use clap::Parser;
+use serde::{Deserialize, Serialize};
 
 #[derive(Parser)]
 struct Cli {
@@ -28,21 +29,18 @@ fn main() {
     let args = Cli::parse();
 
     let resp = get_request_slack_api("conversations.list", &args.token);
-    match resp {
-        Ok(resp) => {
-            println!("{:?}", resp.text());
-        }
-        Err(e) => {
-            println!("Error: {}", e);
-        }
-    }
+
+    let res: Response = serde_json::from_str(&resp.text().unwrap()).unwrap();
+    println!("{:?}", res.channels[0].name);
 }
 
-fn get_request_slack_api(method: &str, token: &str) -> std::result::Result<reqwest::blocking::Response, reqwest::Error> {
+fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
     let url = format!("https://slack.com/api/{}", method);
 
     let client = reqwest::blocking::Client::new();
-    return client.get(&url)
+    let resp = client.get(&url)
         .header("Authorization", format!("Bearer {}", token))
         .send();
+
+    return resp.unwrap();
 }
