@@ -6,6 +6,24 @@ struct Cli {
     token: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Response {
+    ok: bool,
+    channels: Vec<Channel>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Channel {
+    id: String,
+    name: String,
+    is_channel: bool,
+    is_group: bool,
+    is_im: bool,
+    is_mpim: bool,
+    is_private: bool,
+    is_archived: bool,
+}
+
 fn main() {
     let args = Cli::parse();
 
