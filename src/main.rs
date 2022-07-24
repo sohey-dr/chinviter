@@ -8,7 +8,7 @@ struct Cli {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Response {
+struct ConversationsListResponse {
     ok: bool,
     channels: Vec<Channel>,
 }
@@ -28,9 +28,9 @@ struct Channel {
 fn main() {
     let args = Cli::parse();
 
-    let resp = get_request_slack_api("conversations.list", &args.token);
+    let json_str = get_request_slack_api("conversations.list", &args.token);
 
-    let res: Response = serde_json::from_str(&resp.text().unwrap()).unwrap();
+    let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
     println!("{:?}", res.channels[0].name);
 }
 
