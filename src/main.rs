@@ -32,19 +32,7 @@ const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
 fn main() {
     let args = Cli::parse();
 
-    let json_str = get_request_slack_api("conversations.list", &args.token);
-
-    let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
-    let mut records: Vec<Vec<String>> = Vec::new();
-
-    for channel in res.channels {
-        let mut record: Vec<String> = Vec::new();
-        record.push(channel.id);
-        record.push(channel.name);
-        record.push(channel.is_private.to_string());
-
-        records.push(record);
-    }
+    let records = get_channels_from_slack(&args.token);
 
     write_csv(CONVERSATIONS_CSV_PATH, records)
 }
@@ -58,6 +46,27 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
         .send();
 
     return resp.unwrap();
+}
+
+fn get_channels_from_slack(token: &str) -> Vec<Vec<String>> {
+    let json_str = get_request_slack_api("conversations.list", token);
+    let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
+    let mut records: Vec<Vec<String>> = Vec::new();
+
+    for channel in res.channels {
+        let mut record: Vec<String> = Vec::new();
+        record.push(channel.id);
+        record.push(channel.name);
+        if channel.is_private {
+            record.push("private".to_string());
+        } else {
+            record.push("public".to_string());
+        }
+
+        records.push(record);
+    }
+
+    records
 }
 
 
