@@ -14,6 +14,7 @@ struct Cli {
 struct ConversationsListResponse {
     ok: bool,
     channels: Vec<Channel>,
+    response_metadata: ResponseMetadata,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -26,7 +27,6 @@ struct Channel {
     is_mpim: bool,
     is_private: bool,
     is_archived: bool,
-    response_metadata: ResponseMetadata,
 }
 
 #[derive(Serialize, Deserialize)]
