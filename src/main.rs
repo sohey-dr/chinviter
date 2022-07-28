@@ -6,7 +6,8 @@ use csv::Writer;
 
 #[derive(Parser)]
 struct Cli {
-    token: String,
+    subcommand: String,
+    option: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -29,26 +30,6 @@ struct Channel {
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
 
-fn main() {
-    let args = Cli::parse();
-
-    let json_str = get_request_slack_api("conversations.list", &args.token);
-
-    let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
-    let mut records: Vec<Vec<String>> = Vec::new();
-
-    for channel in res.channels {
-        let mut record: Vec<String> = Vec::new();
-        record.push(channel.id);
-        record.push(channel.name);
-        record.push(channel.is_private.to_string());
-
-        records.push(record);
-    }
-
-    write_csv(CONVERSATIONS_CSV_PATH, records)
-}
-
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
     let url = format!("https://slack.com/api/{}", method);
 
@@ -60,10 +41,47 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
     return resp.unwrap();
 }
 
+fn get_channels_from_slack(token: &str) -> Vec<Vec<String>> {
+    let json_str = get_request_slack_api("conversations.list", token);
+    let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
+    let mut records: Vec<Vec<String>> = Vec::new();
+
+    for channel in res.channels {
+        let mut record: Vec<String> = Vec::new();
+        record.push(channel.id);
+        if channel.is_private {
+            record.push("private".to_string());
+        } else {
+            record.push("public".to_string());
+        }
+        record.push(channel.name);
+
+        records.push(record);
+    }
+
+    records
+}
 
 fn write_csv(path: &str, records: Vec<Vec<String>>) {
     let mut writer = Writer::from_path(path).unwrap();
     for record in records {
         writer.write_record(&record).unwrap();
     }
+}
+
+fn set_up(args: Cli) {
+    match args.subcommand.as_str() {
+        "channels" => {
+            let records = get_channels_from_slack(&args.option);
+            write_csv(CONVERSATIONS_CSV_PATH, records);
+        }
+        _ => {
+            println!("{}", args.subcommand);
+        }
+    }
+}
+
+fn main() {
+    let args = Cli::parse();
+    set_up(args);
 }
