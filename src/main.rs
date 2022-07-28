@@ -30,12 +30,6 @@ struct Channel {
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
 
-fn main() {
-    let args = Cli::parse();
-
-    set_up(args);
-}
-
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
     let url = format!("https://slack.com/api/{}", method);
 
@@ -55,12 +49,12 @@ fn get_channels_from_slack(token: &str) -> Vec<Vec<String>> {
     for channel in res.channels {
         let mut record: Vec<String> = Vec::new();
         record.push(channel.id);
-        record.push(channel.name);
         if channel.is_private {
             record.push("private".to_string());
         } else {
             record.push("public".to_string());
         }
+        record.push(channel.name);
 
         records.push(record);
     }
@@ -85,4 +79,9 @@ fn set_up(args: Cli) {
             println!("{}", args.subcommand);
         }
     }
+}
+
+fn main() {
+    let args = Cli::parse();
+    set_up(args);
 }
