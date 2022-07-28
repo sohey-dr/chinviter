@@ -8,6 +8,7 @@ use csv::Writer;
 #[derive(Parser)]
 struct Cli {
     subcommand: String,
+    // In the current functionality, option is passed a token
     option: String,
 }
 
