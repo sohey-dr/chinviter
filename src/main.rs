@@ -12,7 +12,7 @@ use std::fs::OpenOptions;
 #[derive(Parser)]
 struct Cli {
     subcommand: String,
-    // In the current functionality, option is passed a token
+    token: String,
     option: String,
 }
 
