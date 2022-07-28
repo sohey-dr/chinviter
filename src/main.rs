@@ -26,6 +26,12 @@ struct Channel {
     is_mpim: bool,
     is_private: bool,
     is_archived: bool,
+    response_metadata: ResponseMetadata,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ResponseMetadata {
+    next_cursor: String,
 }
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
