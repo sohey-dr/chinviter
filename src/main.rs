@@ -1,4 +1,5 @@
 use reqwest;
+use std::{thread, time};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use csv::Writer;
@@ -35,6 +36,8 @@ struct ResponseMetadata {
 }
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
+
+const API_COOL_TIME: time::Duration = time::Duration::from_secs(2);
 
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
     let url = format!("https://slack.com/api/{}", method);
@@ -81,6 +84,7 @@ fn write_channels_to_csv(token: &str, next_cursor: String) {
     write_csv(CONVERSATIONS_CSV_PATH, records);
 
     if next_cursor != "" {
+        thread::sleep(API_COOL_TIME);
         write_channels_to_csv(token, next_cursor);
     }
 }
