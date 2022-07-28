@@ -66,7 +66,7 @@ fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>
         records.push(record);
     }
 
-    records
+    (records, res.response_metadata.next_cursor)
 }
 
 fn write_csv(path: &str, records: Vec<Vec<String>>) {
@@ -76,12 +76,20 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) {
     }
 }
 
+fn write_channels_to_csv(token: &str, next_cursor: String) {
+    let (records, next_cursor) = get_channels_from_slack(token, next_cursor);
+    write_csv(CONVERSATIONS_CSV_PATH, records);
+
+    if next_cursor != "" {
+        write_channels_to_csv(token, next_cursor);
+    }
+}
+
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
-            let records = get_channels_from_slack(&args.option);
-            write_csv(CONVERSATIONS_CSV_PATH, records);
-        }
+            write_channels_to_csv(&args.option, "".to_string());
+        },
         _ => {
             println!("{}", args.subcommand);
         }
