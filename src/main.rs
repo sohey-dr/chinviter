@@ -1,8 +1,12 @@
+use clap::Parser;
+
+use serde::{Deserialize, Serialize};
+
 use reqwest;
 use std::{thread, time};
-use clap::Parser;
-use serde::{Deserialize, Serialize};
+
 use csv::Writer;
+use std::fs::OpenOptions;
 
 
 #[derive(Parser)]
@@ -74,7 +78,14 @@ fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>
 }
 
 fn write_csv(path: &str, records: Vec<Vec<String>>) {
-    let mut writer = Writer::from_path(path).unwrap();
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(true)
+        .open(path)
+        .unwrap();
+
+    let mut writer = Writer::from_writer(file);
     for record in records {
         writer.write_record(&record).unwrap();
     }
