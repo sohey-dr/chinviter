@@ -17,6 +17,12 @@ struct Cli {
 }
 
 #[derive(Serialize, Deserialize)]
+struct ConversationsInviteResponse {
+    ok: bool,
+    channel: Channel,
+}
+
+#[derive(Serialize, Deserialize)]
 struct ConversationsListResponse {
     ok: bool,
     channels: Vec<Channel>,
