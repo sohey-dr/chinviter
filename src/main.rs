@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use reqwest;
 use std::{thread, time};
 
-use csv::Writer;
+use csv::{Reader, Writer};
 use std::fs::OpenOptions;
 
 
@@ -41,6 +41,8 @@ struct ResponseMetadata {
 }
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
+
+const INVITE_TARGETS_CSV_PATH: &str = ".bin/invite_targets.csv";
 
 const API_COOL_TIME: time::Duration = time::Duration::from_secs(2);
 
@@ -101,10 +103,32 @@ fn write_channels_to_csv(token: &str, next_cursor: String) {
     }
 }
 
+fn duplicate_conversations_csv() {
+    let mut rdr = Reader::from_path(CONVERSATIONS_CSV_PATH).unwrap();
+    let mut writer = Writer::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
+
+    for result in rdr.records() {
+        let record = result.unwrap();
+        let mut new_record: Vec<String> = Vec::new();
+
+        new_record.push(record.get(0).unwrap().to_string());
+        new_record.push(record.get(1).unwrap().to_string());
+        new_record.push(record.get(2).unwrap().to_string());
+
+        writer.write_record(&new_record).unwrap();
+    }
+}
+
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
             write_channels_to_csv(&args.option, "".to_string());
+        },
+        "invite" => {
+            // CONVERSATIONS_CSV_PATHを複製して、invite_targets.csvに書き込む
+            duplicate_conversations_csv();
+            // invite.csvを読み込んで、slackに招待する
+            // slackに招待したら、invite.csvを削除する
         },
         _ => {
             println!("{}", args.subcommand);
