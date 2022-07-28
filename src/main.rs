@@ -32,9 +32,7 @@ const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
 fn main() {
     let args = Cli::parse();
 
-    let records = get_channels_from_slack(&args.token);
-
-    write_csv(CONVERSATIONS_CSV_PATH, records)
+    set_up(args);
 }
 
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
@@ -69,10 +67,15 @@ fn get_channels_from_slack(token: &str) -> Vec<Vec<String>> {
     records
 }
 
-
 fn write_csv(path: &str, records: Vec<Vec<String>>) {
     let mut writer = Writer::from_path(path).unwrap();
     for record in records {
         writer.write_record(&record).unwrap();
     }
+}
+
+fn set_up(args: Cli) {
+    let records = get_channels_from_slack(&args.token);
+
+    write_csv(CONVERSATIONS_CSV_PATH, records)
 }
