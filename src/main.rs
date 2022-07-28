@@ -52,7 +52,7 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
 }
 
 fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>>, String) {
-    let path = format!("conversations.list?cursor={}", next_cursor);
+    let path = format!("conversations.list?types=private_channel&cursor={}", next_cursor);
     let json_str = get_request_slack_api(&path, token);
     let res: ConversationsListResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
     let mut records: Vec<Vec<String>> = Vec::new();
