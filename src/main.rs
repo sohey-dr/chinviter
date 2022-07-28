@@ -6,7 +6,8 @@ use csv::Writer;
 
 #[derive(Parser)]
 struct Cli {
-    token: String,
+    subcommand: String,
+    option: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -75,7 +76,13 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) {
 }
 
 fn set_up(args: Cli) {
-    let records = get_channels_from_slack(&args.token);
-
-    write_csv(CONVERSATIONS_CSV_PATH, records)
+    match args.subcommand.as_str() {
+        "channels" => {
+            let records = get_channels_from_slack(&args.option);
+            write_csv(CONVERSATIONS_CSV_PATH, records);
+        }
+        _ => {
+            println!("{}", args.subcommand);
+        }
+    }
 }
