@@ -161,7 +161,8 @@ fn set_up(args: Cli) {
             delete_invite_targets_csv();
         },
         _ => {
-            println!("{}", args.subcommand);
+            println!("{}: unknown command", args.subcommand);
+            println!("Run 'chinviter help' for usage.")
         }
     }
 }
