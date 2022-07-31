@@ -5,15 +5,21 @@ use serde::{Deserialize, Serialize};
 use reqwest;
 use std::{thread, time};
 
-use csv::Writer;
+use csv::{Reader, Writer};
 use std::fs::OpenOptions;
 
 
 #[derive(Parser)]
 struct Cli {
     subcommand: String,
-    // In the current functionality, option is passed a token
-    option: String,
+    token: String,
+    user_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ConversationsInviteResponse {
+    ok: bool,
+    channel: Channel,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -41,6 +47,8 @@ struct ResponseMetadata {
 }
 
 const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
+
+const INVITE_TARGETS_CSV_PATH: &str = ".bin/invite_targets.csv";
 
 const API_COOL_TIME: time::Duration = time::Duration::from_secs(2);
 
@@ -101,10 +109,56 @@ fn write_channels_to_csv(token: &str, next_cursor: String) {
     }
 }
 
+fn duplicate_conversations_csv() {
+    let mut rdr = Reader::from_path(CONVERSATIONS_CSV_PATH).unwrap();
+    let mut writer = Writer::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
+
+    for result in rdr.records() {
+        let record = result.unwrap();
+        let mut new_record: Vec<String> = Vec::new();
+
+        new_record.push(record.get(0).unwrap().to_string());
+        new_record.push(record.get(1).unwrap().to_string());
+        new_record.push(record.get(2).unwrap().to_string());
+
+        writer.write_record(&new_record).unwrap();
+    }
+}
+
+fn invite_targets_to_slack(token: &str, user_id: &str) {
+    let mut rdr = Reader::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
+
+    for record in rdr.records() {
+        let record = record.unwrap();
+        let channel_id = record.get(0).unwrap();
+
+        let path = format!("conversations.invite?channel={}&user={}", channel_id, user_id);
+        let json_str = get_request_slack_api(&path, token);
+        let res: ConversationsInviteResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
+
+        if res.ok {
+            println!("Invited {} to {}", user_id, channel_id);
+        } else {
+            println!("Failed to invite {} to {}", user_id, channel_id);
+        }
+
+        thread::sleep(API_COOL_TIME);
+    }
+}
+
+fn delete_invite_targets_csv() {
+    std::fs::remove_file(INVITE_TARGETS_CSV_PATH).unwrap();
+}
+
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&args.option, "".to_string());
+            write_channels_to_csv(&args.token, "".to_string());
+        },
+        "invite" => {
+            duplicate_conversations_csv();
+            invite_targets_to_slack(&args.token, &args.user_id);
+            delete_invite_targets_csv();
         },
         _ => {
             println!("{}", args.subcommand);
