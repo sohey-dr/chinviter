@@ -117,6 +117,7 @@ fn duplicate_conversations_csv() {
         let record = result.unwrap();
         let mut new_record: Vec<String> = Vec::new();
 
+        // format: channel_id, channel_type, channel_name
         new_record.push(record.get(0).unwrap().to_string());
         new_record.push(record.get(1).unwrap().to_string());
         new_record.push(record.get(2).unwrap().to_string());
