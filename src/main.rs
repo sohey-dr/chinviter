@@ -146,6 +146,10 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
     }
 }
 
+fn delete_invite_targets_csv() {
+    std::fs::remove_file(INVITE_TARGETS_CSV_PATH).unwrap();
+}
+
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
@@ -154,7 +158,7 @@ fn set_up(args: Cli) {
         "invite" => {
             duplicate_conversations_csv();
             invite_targets_to_slack(&args.token, &args.user_id);
-            // slackに招待したら、invite.csvを削除する
+            delete_invite_targets_csv();
         },
         _ => {
             println!("{}", args.subcommand);
