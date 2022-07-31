@@ -149,7 +149,7 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&args.option, "".to_string());
+            write_channels_to_csv(&args.token, "".to_string());
         },
         "invite" => {
             duplicate_conversations_csv();
