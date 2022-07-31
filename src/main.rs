@@ -117,6 +117,7 @@ fn duplicate_conversations_csv() {
         let record = result.unwrap();
         let mut new_record: Vec<String> = Vec::new();
 
+        // format: channel_id, channel_type, channel_name
         new_record.push(record.get(0).unwrap().to_string());
         new_record.push(record.get(1).unwrap().to_string());
         new_record.push(record.get(2).unwrap().to_string());
@@ -161,7 +162,8 @@ fn set_up(args: Cli) {
             delete_invite_targets_csv();
         },
         _ => {
-            println!("{}", args.subcommand);
+            println!("{}: unknown command", args.subcommand);
+            println!("Run 'chinviter help' for usage.")
         }
     }
 }
