@@ -13,7 +13,7 @@ use std::fs::OpenOptions;
 struct Cli {
     subcommand: String,
     token: String,
-    option: String,
+    user_id: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -125,15 +125,35 @@ fn duplicate_conversations_csv() {
     }
 }
 
+fn invite_targets_to_slack(token: &str, user_id: &str) {
+    let mut rdr = Reader::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
+
+    for record in rdr.records() {
+        let record = record.unwrap();
+        let channel_id = record.get(0).unwrap();
+
+        let path = format!("conversations.invite?channel={}&user={}", channel_id, user_id);
+        let json_str = get_request_slack_api(&path, token);
+        let res: ConversationsInviteResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
+
+        if res.ok {
+            println!("Invited {} to {}", user_id, channel_id);
+        } else {
+            println!("Failed to invite {} to {}", user_id, channel_id);
+        }
+
+        thread::sleep(API_COOL_TIME);
+    }
+}
+
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
             write_channels_to_csv(&args.option, "".to_string());
         },
         "invite" => {
-            // CONVERSATIONS_CSV_PATHを複製して、invite_targets.csvに書き込む
             duplicate_conversations_csv();
-            // invite.csvを読み込んで、slackに招待する
+            invite_targets_to_slack(&args.token, &args.user_id);
             // slackに招待したら、invite.csvを削除する
         },
         _ => {
