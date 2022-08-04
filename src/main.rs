@@ -134,6 +134,7 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
         let channel_id = record.get(0).unwrap();
 
         let path = format!("conversations.invite?channel={}&users={}", channel_id, user_id);
+                // TODO: refactor this
             println!("Failed to invite {} to {}", user_id, channel_id);
         }
 
