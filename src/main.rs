@@ -46,9 +46,9 @@ struct ResponseMetadata {
     next_cursor: String,
 }
 
-const CONVERSATIONS_CSV_PATH: &str = ".bin/conversations.csv";
+const CONVERSATIONS_CSV_PATH: &str = ".tmp/conversations.csv";
 
-const INVITE_TARGETS_CSV_PATH: &str = ".bin/invite_targets.csv";
+const INVITE_TARGETS_CSV_PATH: &str = ".tmp/invite_targets.csv";
 
 const API_COOL_TIME: time::Duration = time::Duration::from_secs(2);
 
