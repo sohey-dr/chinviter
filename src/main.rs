@@ -134,9 +134,26 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
         let channel_id = record.get(0).unwrap();
 
         let path = format!("conversations.invite?channel={}&users={}", channel_id, user_id);
+        let json_str = get_request_slack_api(&path, token).text().unwrap();
+        match serde_json::from_str(&json_str){
+            Result::Ok(res) => {
                 // TODO: refactor this
-            println!("Failed to invite {} to {}", user_id, channel_id);
-        }
+                match res {
+                    ConversationsInviteResponse { ok, channel } => {
+                        if ok {
+                            println!("Invited {} to {}: {}", user_id, channel.name, channel.id);
+                        } else {
+                            println!("result: {}", json_str);
+                            println!("Failed to invite {} to {}", user_id, channel_id);
+                        }
+                    }
+                }
+            },
+            Result::Err(err) => {
+                println!("Failed to invite {} to {}", user_id, channel_id);
+                println!("{}", err);
+            }
+        };
 
         thread::sleep(API_COOL_TIME);
     }
