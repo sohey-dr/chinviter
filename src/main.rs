@@ -11,8 +11,8 @@ use std::fs::OpenOptions;
 
 #[derive(Parser)]
 struct Cli {
-    subcommand: String,
     token: String,
+    subcommand: String,
     user_id: String,
 }
 
