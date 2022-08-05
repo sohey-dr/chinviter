@@ -22,6 +22,9 @@ struct Cli {
 
     #[clap(short = 'u', long = "user_id", default_value = "")]
     user_id: String,
+
+    #[clap(short = 'f', long = "fillter", default_value = "")]
+    fillter: String,
 }
 
 #[derive(Serialize, Deserialize)]
