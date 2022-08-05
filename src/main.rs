@@ -10,6 +10,12 @@ use std::fs::OpenOptions;
 
 
 #[derive(Parser)]
+#[clap(
+    name = "chinviter",
+    author = "sohey",
+    version = "v1.0.0",
+    about = "CLI tool to invite Slack channels of a workspace"
+)]
 struct Cli {
     token: String,
     subcommand: String,
