@@ -19,7 +19,8 @@ use std::fs::OpenOptions;
 struct Cli {
     token: String,
     subcommand: String,
-    user_id: String,
+
+    user_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -175,8 +176,15 @@ fn set_up(args: Cli) {
             write_channels_to_csv(&args.token, "".to_string());
         },
         "invite" => {
+            // TODO: to -u option
+            let user_id = args.user_id.unwrap_or("".to_string());
+            if user_id == "" {
+                println!("Please provide a user id");
+                return;
+            }
+
             duplicate_conversations_csv();
-            invite_targets_to_slack(&args.token, &args.user_id);
+            invite_targets_to_slack(&args.token, &user_id);
             delete_invite_targets_csv();
         },
         _ => {
