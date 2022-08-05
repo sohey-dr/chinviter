@@ -10,10 +10,21 @@ use std::fs::OpenOptions;
 
 
 #[derive(Parser)]
+#[clap(
+    name = "chinviter",
+    author = "sohey",
+    version = "v1.0.0",
+    about = "CLI tool to invite Slack channels of a workspace"
+)]
 struct Cli {
-    subcommand: String,
     token: String,
+    subcommand: String,
+
+    #[clap(short = 'u', long = "user_id", default_value = "")]
     user_id: String,
+
+    #[clap(short = 'f', long = "fillter", default_value = "")]
+    fillter: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -169,6 +180,11 @@ fn set_up(args: Cli) {
             write_channels_to_csv(&args.token, "".to_string());
         },
         "invite" => {
+            if args.user_id == "" {
+                println!("user_id is required");
+                return;
+            }
+
             duplicate_conversations_csv();
             invite_targets_to_slack(&args.token, &args.user_id);
             delete_invite_targets_csv();
