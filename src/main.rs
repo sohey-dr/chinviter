@@ -13,7 +13,7 @@ use std::fs::OpenOptions;
 #[clap(
     name = "chinviter",
     author = "sohey",
-    version = "v1.0.0",
+    version = "v1.0.1",
     about = "CLI tool to invite Slack channels of a workspace"
 )]
 struct Cli {
@@ -110,13 +110,22 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) {
     }
 }
 
-fn write_channels_to_csv(token: &str, next_cursor: String) {
+fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) {
     let (records, next_cursor) = get_channels_from_slack(token, next_cursor);
-    write_csv(CONVERSATIONS_CSV_PATH, records);
+
+    // TODO: refactor
+    let mut filtered_records = Vec::new();
+    for record in records {
+        if fillter == "" || record[2].contains(fillter) {
+            filtered_records.push(record);
+        }
+    }
+
+    write_csv(CONVERSATIONS_CSV_PATH, filtered_records);
 
     if next_cursor != "" {
         thread::sleep(API_COOL_TIME);
-        write_channels_to_csv(token, next_cursor);
+        write_channels_to_csv(token, next_cursor, fillter);
     }
 }
 
@@ -177,7 +186,7 @@ fn delete_invite_targets_csv() {
 fn set_up(args: Cli) {
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&args.token, "".to_string());
+            write_channels_to_csv(&args.token, "".to_string(), &args.fillter);
         },
         "invite" => {
             if args.user_id == "" {
