@@ -13,7 +13,7 @@ use std::fs::OpenOptions;
 #[clap(
     name = "chinviter",
     author = "sohey",
-    version = "v1.0.0",
+    version = "v1.0.1",
     about = "CLI tool to invite Slack channels of a workspace"
 )]
 struct Cli {
