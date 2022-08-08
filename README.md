@@ -12,7 +12,7 @@ cd chinviter
 cargo run -- -help
 ```
 
-## How to use
+## USAGE
 
 ```bash
 USAGE:
