@@ -3,7 +3,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 use reqwest;
-use std::{thread, time};
+use std::{thread, time, io};
 
 use csv::{Reader, Writer};
 use std::fs::OpenOptions;
@@ -96,7 +96,7 @@ fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>
     (records, res.response_metadata.next_cursor)
 }
 
-fn write_csv(path: &str, records: Vec<Vec<String>>) {
+fn write_csv(path: &str, records: Vec<Vec<String>>) -> io::Result<()> {
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -108,9 +108,11 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) {
     for record in records {
         writer.write_record(&record).unwrap();
     }
+
+    writer.flush()
 }
 
-fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) {
+fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) -> Result<(), io::Error> {
     let (records, next_cursor) = get_channels_from_slack(token, next_cursor);
 
     // TODO: refactor
@@ -121,15 +123,16 @@ fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) {
         }
     }
 
-    write_csv(CONVERSATIONS_CSV_PATH, filtered_records);
+    write_csv(CONVERSATIONS_CSV_PATH, filtered_records)?;
 
     if next_cursor != "" {
         thread::sleep(API_COOL_TIME);
-        write_channels_to_csv(token, next_cursor, fillter);
+        write_channels_to_csv(token, next_cursor, fillter)?;
     }
+    Ok(())
 }
 
-fn duplicate_conversations_csv() {
+fn duplicate_conversations_csv() -> io::Result<()> {
     let mut rdr = Reader::from_path(CONVERSATIONS_CSV_PATH).unwrap();
     let mut writer = Writer::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
 
@@ -144,6 +147,8 @@ fn duplicate_conversations_csv() {
 
         writer.write_record(&new_record).unwrap();
     }
+
+    Ok(())
 }
 
 fn invite_targets_to_slack(token: &str, user_id: &str) {
@@ -179,33 +184,38 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
     }
 }
 
-fn delete_invite_targets_csv() {
-    std::fs::remove_file(INVITE_TARGETS_CSV_PATH).unwrap();
+fn delete_invite_targets_csv() -> Result<(), io::Error> {
+    std::fs::remove_file(CONVERSATIONS_CSV_PATH)?;
+    Ok(())
 }
 
-fn set_up(args: Cli) {
+fn set_up(args: Cli) -> Result<(), io::Error> {
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&args.token, "".to_string(), &args.fillter);
+            write_channels_to_csv(&args.token, "".to_string(), &args.fillter)?;
         },
         "invite" => {
             if args.user_id == "" {
                 println!("user_id is required");
-                return;
+                return Ok(());
             }
 
-            duplicate_conversations_csv();
+            duplicate_conversations_csv()?;
             invite_targets_to_slack(&args.token, &args.user_id);
-            delete_invite_targets_csv();
+            delete_invite_targets_csv()?;
         },
         _ => {
             println!("{}: unknown command", args.subcommand);
             println!("Run 'chinviter help' for usage.")
         }
     }
+
+    Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), io::Error> {
     let args = Cli::parse();
-    set_up(args);
+    set_up(args)?;
+
+    Ok(())
 }
