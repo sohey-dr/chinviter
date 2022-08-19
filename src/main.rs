@@ -96,7 +96,7 @@ fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>
     (records, res.response_metadata.next_cursor)
 }
 
-fn write_csv(path: &str, records: Vec<Vec<String>>) {
+fn write_csv(path: &str, records: Vec<Vec<String>>) -> io::Result<()> {
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -108,6 +108,8 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) {
     for record in records {
         writer.write_record(&record).unwrap();
     }
+
+    writer.flush()
 }
 
 fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) -> Result<(), io::Error> {
