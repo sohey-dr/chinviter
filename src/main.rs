@@ -1,4 +1,5 @@
 use clap::Parser;
+use spinners::{Spinner, Spinners};
 
 use serde::{Deserialize, Serialize};
 
@@ -190,6 +191,7 @@ fn delete_invite_targets_csv() -> Result<(), io::Error> {
 }
 
 fn set_up(args: Cli) -> Result<(), io::Error> {
+    let mut sp = Spinner::new(Spinners::Dots9, "".into());
     match args.subcommand.as_str() {
         "channels" => {
             write_channels_to_csv(&args.token, "".to_string(), &args.fillter)?;
@@ -209,6 +211,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
             println!("Run 'chinviter help' for usage.")
         }
     }
+    sp.stop();
 
     Ok(())
 }
