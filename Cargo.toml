@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 clap = { version = "3.2.14", features = ["derive"] }
 spinners = "4.1.0"
+rpassword = "7.0"
 
 reqwest = { version = "0.11", features = ["blocking"] }
 tokio = { version = "1", features = ["full"] }
