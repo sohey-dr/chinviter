@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use reqwest;
 use std::{thread, time, io};
+use std::io::stdin;
+use std::io::{stdout, Write};
 
 use csv::{Reader, Writer};
 use std::fs::OpenOptions;
@@ -18,7 +20,6 @@ use std::fs::OpenOptions;
     about = "CLI tool to invite Slack channels of a workspace"
 )]
 struct Cli {
-    token: String,
     subcommand: String,
 
     #[clap(short = 'u', long = "user_id", default_value = "")]
@@ -191,10 +192,12 @@ fn delete_invite_targets_csv() -> Result<(), io::Error> {
 }
 
 fn set_up(args: Cli) -> Result<(), io::Error> {
+    let token = get_token();
+
     let mut sp = Spinner::new(Spinners::Dots9, "".into());
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&args.token, "".to_string(), &args.fillter)?;
+            write_channels_to_csv(&token, "".to_string(), &args.fillter)?;
         },
         "invite" => {
             if args.user_id == "" {
@@ -203,7 +206,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
             }
 
             duplicate_conversations_csv()?;
-            invite_targets_to_slack(&args.token, &args.user_id);
+            invite_targets_to_slack(&token, &args.user_id);
             delete_invite_targets_csv()?;
         },
         _ => {
@@ -214,6 +217,15 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
     sp.stop();
 
     Ok(())
+}
+
+fn get_token() -> String {
+    let mut token = String::new();
+    print!("token> ");
+    stdout().flush().unwrap();
+    stdin().read_line(&mut token).unwrap();
+
+    token.trim().to_string()
 }
 
 fn main() -> Result<(), io::Error> {
