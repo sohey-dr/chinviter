@@ -169,6 +169,7 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
                     ConversationsInviteResponse { ok, channel } => {
                         if ok {
                             println!("Invited {} to {}: {}", user_id, channel.name, channel.id);
+                            stdout().flush().unwrap();
                         } else {
                             println!("result: {}", json_str);
                             println!("Failed to invite {} to {}", user_id, channel_id);
