@@ -1,11 +1,11 @@
 use clap::Parser;
 use spinners::{Spinner, Spinners};
+use rpassword::read_password;
 
 use serde::{Deserialize, Serialize};
 
 use reqwest;
 use std::{thread, time, io};
-use std::io::stdin;
 use std::io::{stdout, Write};
 
 use csv::{Reader, Writer};
@@ -220,10 +220,9 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
 }
 
 fn get_token() -> String {
-    let mut token = String::new();
     print!("token> ");
     stdout().flush().unwrap();
-    stdin().read_line(&mut token).unwrap();
+    let token = read_password().unwrap();
 
     token.trim().to_string()
 }
