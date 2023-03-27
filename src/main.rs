@@ -36,6 +36,11 @@ struct ConversationsInviteResponse {
 }
 
 #[derive(Serialize, Deserialize)]
+struct ConversationsKickResponse {
+    ok: bool,
+}
+
+#[derive(Serialize, Deserialize)]
 struct ConversationsListResponse {
     ok: bool,
     channels: Vec<Channel>,
@@ -186,8 +191,41 @@ fn invite_targets_to_slack(token: &str, user_id: &str) {
     }
 }
 
-fn delete_invite_targets_csv() -> Result<(), io::Error> {
-    std::fs::remove_file(CONVERSATIONS_CSV_PATH)?;
+fn kick_targets_from_slack(token: &str, user_id: &str) {
+    let mut rdr = Reader::from_path(KICK_TARGETS_CSV_PATH).unwrap();
+
+    for record in rdr.records() {
+        let record = record.unwrap();
+        let channel_id = record.get(0).unwrap();
+
+        let path = format!("conversations.kick?channel={}&user={}", channel_id, user_id);
+        let json_str = get_request_slack_api(&path, token).text().unwrap();
+        match serde_json::from_str(&json_str){
+            Result::Ok(res) => {
+                match res{
+                    ConversationsKickResponse { ok } => {
+                        if ok {
+                            println!("Kicked {} from {}", user_id, channel_id);
+                            stdout().flush().unwrap();
+                        } else {
+                            println!("result: {}", json_str);
+                            println!("Failed to kick {} from {}", user_id, channel_id);
+                        }
+                    }
+                }
+            },
+            Result::Err(err) => {
+                println!("Failed to kick {} from {}", user_id, channel_id);
+                println!("{}", err);
+            }
+        };
+
+        thread::sleep(API_COOL_TIME);
+    }
+}
+
+fn delete_targets_csv(target_csv_path: &str) -> io::Result<()> {
+    std::fs::remove_file(target_csv_path)?;
     Ok(())
 }
 
@@ -207,7 +245,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
 
             duplicate_conversations_csv(INVITE_TARGETS_CSV_PATH)?;
             invite_targets_to_slack(&token, &args.user_id);
-            delete_invite_targets_csv()?;
+            delete_targets_csv(INVITE_TARGETS_CSV_PATH)?;
         },
         "kick" => {
             if args.user_id == "" {
@@ -217,7 +255,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
 
             duplicate_conversations_csv(KICK_TARGETS_CSV_PATH)?;
             kick_targets_from_slack(&token, &args.user_id);
-
+            delete_targets_csv(KICK_TARGETS_CSV_PATH)?;
         },
         _ => {
             println!("{}: unknown command", args.subcommand);
