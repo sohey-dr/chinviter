@@ -9,6 +9,7 @@ CLI tool to invite Slack channels of a workspace
 ```bash
 git clone git@github.com:sohey-dr/chinviter.git
 cd chinviter
+cp .env.sample .env
 cargo run -- -help
 ```
 
