@@ -194,7 +194,6 @@ fn delete_invite_targets_csv() -> Result<(), io::Error> {
 
 fn set_up(args: Cli) -> Result<(), io::Error> {
     let token = get_token();
-
     let mut sp = Spinner::new(Spinners::Dots9, "".into());
     match args.subcommand.as_str() {
         "channels" => {
@@ -203,6 +202,10 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
         "invite" => {
             if args.user_id == "" {
                 println!("user_id is required");
+                return Ok(());
+            }
+            if !args.user_id.starts_with("U") {
+                println!("slack user_id is required. e.g. U0123456789");
                 return Ok(());
             }
 
@@ -233,4 +236,17 @@ fn main() -> Result<(), io::Error> {
     set_up(args)?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_set_up() {
+
+        let args = Cli::parse();
+        assert_eq!(set_up(args), ExitCode(()));
+    }
 }
