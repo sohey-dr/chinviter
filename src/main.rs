@@ -25,8 +25,8 @@ struct Cli {
     #[clap(short = 'u', long = "user_id", default_value = "")]
     user_id: String,
 
-    #[clap(short = 'f', long = "fillter", default_value = "")]
-    fillter: String,
+    #[clap(short = 'f', long = "filter", default_value = "")]
+    filter: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -114,13 +114,13 @@ fn write_csv(path: &str, records: Vec<Vec<String>>) -> io::Result<()> {
     writer.flush()
 }
 
-fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) -> Result<(), io::Error> {
+fn write_channels_to_csv(token: &str, next_cursor: String, filter: &str) -> Result<(), io::Error> {
     let (records, next_cursor) = get_channels_from_slack(token, next_cursor);
 
     // TODO: refactor
     let mut filtered_records = Vec::new();
     for record in records {
-        if fillter == "" || record[2].contains(fillter) {
+        if filter == "" || record[2].contains(filter) {
             filtered_records.push(record);
         }
     }
@@ -129,7 +129,7 @@ fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) -> Res
 
     if next_cursor != "" {
         thread::sleep(API_COOL_TIME);
-        write_channels_to_csv(token, next_cursor, fillter)?;
+        write_channels_to_csv(token, next_cursor, filter)?;
     }
     Ok(())
 }
@@ -198,7 +198,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
     let mut sp = Spinner::new(Spinners::Dots9, "".into());
     match args.subcommand.as_str() {
         "channels" => {
-            write_channels_to_csv(&token, "".to_string(), &args.fillter)?;
+            write_channels_to_csv(&token, "".to_string(), &args.filter)?;
         },
         "invite" => {
             if args.user_id == "" {
