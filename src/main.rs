@@ -60,9 +60,8 @@ struct ResponseMetadata {
 }
 
 const CONVERSATIONS_CSV_PATH: &str = ".tmp/conversations.csv";
-
 const INVITE_TARGETS_CSV_PATH: &str = ".tmp/invite_targets.csv";
-
+const KICK_TARGETS_CSV_PATH: &str = ".tmp/kick_targets.csv";
 const API_COOL_TIME: time::Duration = time::Duration::from_secs(2);
 
 fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Response {
@@ -134,9 +133,9 @@ fn write_channels_to_csv(token: &str, next_cursor: String, fillter: &str) -> Res
     Ok(())
 }
 
-fn duplicate_conversations_csv() -> io::Result<()> {
+fn duplicate_conversations_csv(target_csv_path: &str) -> io::Result<()> {
     let mut rdr = Reader::from_path(CONVERSATIONS_CSV_PATH).unwrap();
-    let mut writer = Writer::from_path(INVITE_TARGETS_CSV_PATH).unwrap();
+    let mut writer = Writer::from_path(target_csv_path).unwrap();
 
     for result in rdr.records() {
         let record = result.unwrap();
@@ -206,9 +205,19 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
                 return Ok(());
             }
 
-            duplicate_conversations_csv()?;
+            duplicate_conversations_csv(INVITE_TARGETS_CSV_PATH)?;
             invite_targets_to_slack(&token, &args.user_id);
             delete_invite_targets_csv()?;
+        },
+        "kick" => {
+            if args.user_id == "" {
+                println!("user_id is required");
+                return Ok(());
+            }
+
+            duplicate_conversations_csv(KICK_TARGETS_CSV_PATH)?;
+            kick_targets_from_slack(&token, &args.user_id);
+
         },
         _ => {
             println!("{}: unknown command", args.subcommand);
