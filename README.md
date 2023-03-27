@@ -19,11 +19,11 @@ USAGE:
     chinviter [OPTIONS] <TOKEN> <SUBCOMMAND>
 
 ARGS:
-    <TOKEN>         
-    <SUBCOMMAND>    
+    <TOKEN>
+    <SUBCOMMAND>
 
 OPTIONS:
-    -f, --fillter <FILLTER>    [default: ]
+    -f, --filter <filter>    [default: ]
     -h, --help                 Print help information
     -u, --user_id <USER_ID>    [default: ]
     -V, --version              Print version information
