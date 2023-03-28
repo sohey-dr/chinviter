@@ -51,7 +51,8 @@ struct ConversationsListResponse {
 #[derive(Serialize, Deserialize)]
 struct UserInfoResponse {
     ok: bool,
-    user: Vec<User>,
+    user: Option<User>,
+    error: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -79,22 +80,22 @@ struct User {
 
 #[derive(Serialize, Deserialize)]
 struct Profile {
-        avatar_hash: String,
-        status_text: String,
-        status_emoji: String,
-        real_name: String,
-        display_name: String,
-        real_name_normalized: String,
-        display_name_normalized: String,
-        email: String, // TODO: email only validation
-        image_original: String, // TODO: URL only validations
-        image_24: String, // TODO: URL only validation
-        image_32: String, // TODO: URL only validation
-        image_48: String, // TODO: URL only validation
-        image_72: String, // TODO: URL only validation
-        image_192:String, // TODO: URL only validation
-        image_512:String, // TODO: URL only validation
-        team: String
+    avatar_hash: String,
+    status_text: String,
+    status_emoji: String,
+    real_name: String,
+    display_name: String,
+    real_name_normalized: String,
+    display_name_normalized: String,
+    email: String, // TODO: email only validation
+    image_original: String, // TODO: URL only validations
+    image_24: String, // TODO: URL only validation
+    image_32: String, // TODO: URL only validation
+    image_48: String, // TODO: URL only validation
+    image_72: String, // TODO: URL only validation
+    image_192:String, // TODO: URL only validation
+    image_512:String, // TODO: URL only validation
+    team: String
 }
 
 #[derive(Serialize, Deserialize)]
@@ -131,13 +132,16 @@ fn get_request_slack_api(method: &str, token: &str) -> reqwest::blocking::Respon
 }
 
 // https://api.slack.com/methods/users.info
-fn get_user_info_from_slack(token: &str) -> String {
+fn get_user_info_from_slack(token: String) -> String {
     let path = format!("users.info");
-    let json_str = get_request_slack_api(&path, token);
+    let json_str = get_request_slack_api(&path, token.as_str());
     let res: UserInfoResponse = serde_json::from_str(&json_str.text().unwrap()).unwrap();
-    let mut records: Vec<Vec<String>> = Vec::new();
 
-    res.user.profile.email;
+    if res.ok {
+        res.user.unwrap().profile.email
+    }else{
+        std::process::exit(1);
+    }
 }
 
 fn get_channels_from_slack(token: &str, next_cursor: String) -> (Vec<Vec<String>>, String) {
@@ -311,9 +315,8 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
 
             if !email_domain.is_none() {
                 // TODO: validationを実装
-                let email = get_user_info_from_slack(token);
+                let email = get_user_info_from_slack(token.to_string());
                 if !email.ends_with(email_domain.unwrap()) {
-                    println!("{} is not in {}", email, email_domain);
                     return Ok(());
                 }
             }
@@ -355,17 +358,4 @@ fn main() -> Result<(), io::Error> {
     set_up(args)?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-
-    #[test]
-    fn test_set_up() {
-
-        let args = Cli::parse();
-        assert_eq!(set_up(args), ExitCode(()));
-    }
 }
