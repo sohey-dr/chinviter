@@ -317,6 +317,7 @@ fn set_up(args: Cli) -> Result<(), io::Error> {
                 // TODO: validationを実装
                 let email = get_user_info_from_slack(token.to_string());
                 if !email.ends_with(email_domain.unwrap()) {
+                    println!("email domain is not matched");
                     return Ok(());
                 }
             }
